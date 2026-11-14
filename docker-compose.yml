@@ -1,10 +1,24 @@
 services:
+  # 主服务：契约排程 API + 裂纹事件分发 API
   contract-scheduler:
     build: .
-    image: crack-contract-scheduler:1.0.0
+    image: crack-contract-scheduler:1.1.0
     container_name: crack-contract-scheduler
     ports:
       - "8000:8000"
+    environment:
+      DATA_DIR: /data/distributor
+      QC_RECEIVER_URL: http://qc-receiver:8100
+      REPORT_RECEIVER_URL: http://report-receiver:8200
+      RETRY_INTERVAL_SECONDS: "5"     # 后台自动补送周期；0 关闭
+      DELIVERY_TIMEOUT_SECONDS: "3"
+    volumes:
+      - distributor-data:/data
+    depends_on:
+      qc-receiver:
+        condition: service_healthy
+      report-receiver:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
@@ -12,3 +26,50 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # 质检接收端（本地接收端之一）
+  qc-receiver:
+    build: .
+    image: crack-contract-scheduler:1.1.0
+    container_name: crack-qc-receiver
+    command: ["uvicorn", "app.receiver:app", "--host", "0.0.0.0", "--port", "8100"]
+    environment:
+      RECEIVER_NAME: qc
+      DATA_DIR: /data
+    volumes:
+      - qc-data:/data
+    ports:
+      - "8100:8100"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8100/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 日报接收端（本地接收端之二）
+  report-receiver:
+    build: .
+    image: crack-contract-scheduler:1.1.0
+    container_name: crack-report-receiver
+    command: ["uvicorn", "app.receiver:app", "--host", "0.0.0.0", "--port", "8200"]
+    environment:
+      RECEIVER_NAME: daily_report
+      DATA_DIR: /data
+    volumes:
+      - report-data:/data
+    ports:
+      - "8200:8200"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8200/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  distributor-data:
+  qc-data:
+  report-data:
