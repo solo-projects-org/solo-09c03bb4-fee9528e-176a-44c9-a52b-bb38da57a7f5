@@ -1,0 +1,60 @@
+{
+  "parties": [
+    {
+      "id": "collector",
+      "role": "producer",
+      "old_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "car_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "length_mm", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "enum", "required": true,
+         "enum_values": ["L1", "L2"]}
+      ],
+      "new_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "car_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "length_mm", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "enum", "required": true,
+         "enum_values": ["L1", "L2", "L3"]}
+      ]
+    },
+    {
+      "id": "qc",
+      "role": "subscriber",
+      "old_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "car_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "length_mm", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "enum", "required": true,
+         "enum_values": ["L1", "L2"]}
+      ],
+      "new_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "car_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "length_mm", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "enum", "required": true,
+         "enum_values": ["L1", "L2", "L3"]},
+        {"name": "inspector_id", "type": "string", "required": true}
+      ]
+    },
+    {
+      "id": "daily_report",
+      "role": "subscriber",
+      "old_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "string", "required": true}
+      ],
+      "new_schema": [
+        {"name": "crack_id", "type": "string", "required": true},
+        {"name": "mileage_m", "type": "integer", "required": true},
+        {"name": "defect_level", "type": "string", "required": true},
+        {"name": "length_mm", "type": "integer", "required": false}
+      ]
+    }
+  ]
+}
